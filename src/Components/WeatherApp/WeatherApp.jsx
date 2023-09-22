@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./WeatherApp.css";
 import search_icon from "../Assets/search.png";
 import clear_icon from "../Assets/clear.png";
@@ -11,7 +11,6 @@ import wind_icon from "../Assets/wind.png";
 import axios from "axios";
 
 const WeatherApp = () => {
-  // Estado para almacenar los datos del clima y el ícono del clima
   const [weatherData, setWeatherData] = useState({
     humidity: "64%",
     windspeed: "30km/h",
@@ -19,11 +18,11 @@ const WeatherApp = () => {
     location: "Madrid",
   });
 
-  const [icon, setIcon] = useState(cloud_icon); // Estado para el ícono del clima
+  const [icon, setIcon] = useState(cloud_icon);
+  const [iconAnimation, setIconAnimation] = useState(""); // Estado para la clase CSS de animación
 
-  const api_key = "c89f078954645f0e135087fb742e51b8"; // Clave de OpenWeatherMap
+  const api_key = "c89f078954645f0e135087fb742e51b8";
 
-  // Función para realizar la búsqueda del clima
   const search = async () => {
     const searchInput = document.getElementById("searchInput");
     if (!searchInput || !searchInput.value) {
@@ -32,13 +31,12 @@ const WeatherApp = () => {
 
     const cityName = searchInput.value;
     const url = `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&units=Metric&appid=${api_key}`;
-
+    
     try {
       const response = await axios.get(url);
       const data = response.data;
       const { main, wind, name, weather } = data;
 
-      // Actualiza los datos del clima en el estado
       setWeatherData({
         humidity: `${main.humidity}%`,
         windspeed: `${wind.speed}km/h`,
@@ -46,22 +44,29 @@ const WeatherApp = () => {
         location: name,
       });
 
-      // Cambia el ícono de acuerdo al estado del tiempo
       if (weather[0].icon === "01d" || weather[0].icon === "01n") {
+        setIconAnimation("animate__bounce"); // Activa la animación
         setIcon(clear_icon);
       } else if (weather[0].icon === "02d" || weather[0].icon === "02n") {
+        setIconAnimation("animate__bounce");
         setIcon(cloud_icon);
       } else if (weather[0].icon === "03d" || weather[0].icon === "03n") {
+        setIconAnimation("animate__bounce");
         setIcon(drizzle_icon);
       } else if (weather[0].icon === "04d" || weather[0].icon === "04n") {
+        setIconAnimation("animate__bounce");
         setIcon(drizzle_icon);
       } else if (weather[0].icon === "09d" || weather[0].icon === "09n") {
+        setIconAnimation("animate__bounce");
         setIcon(rain_icon);
       } else if (weather[0].icon === "10d" || weather[0].icon === "10n") {
+        setIconAnimation("animate__bounce");
         setIcon(rain_icon);
       } else if (weather[0].icon === "13d" || weather[0].icon === "13n") {
+        setIconAnimation("animate__bounce");
         setIcon(snow_icon);
       } else {
+        setIconAnimation(""); // Limpia la animación
         setIcon(cloud_icon);
       }
     } catch (error) {
@@ -69,12 +74,20 @@ const WeatherApp = () => {
     }
   };
 
-  // Función para manejar la pulsación de la tecla Enter en el campo de búsqueda
   const handleKeyPress = (event) => {
     if (event.key === "Enter") {
       search();
     }
   };
+
+  useEffect(() => {
+    // Limpia la animación después de 1 segundo
+    const animationTimeout = setTimeout(() => {
+      setIconAnimation("");
+    }, 1000);
+
+    return () => clearTimeout(animationTimeout);
+  }, [iconAnimation]);
 
   return (
     <div className="container bg-primary rounded p-5 mt-5 text-center">
@@ -94,10 +107,10 @@ const WeatherApp = () => {
           placeholder="Encuentra tu ciudad"
           aria-label="Search your location"
           aria-describedby="addon-wrapping"
-          onKeyDown={handleKeyPress} // Agregar el evento onKeyDown para buscar al presionar Enter
+          onKeyDown={handleKeyPress}
         />
       </div>
-      <div className="weather-image mt-5">
+      <div className={`weather-image mt-5 animate__animated ${iconAnimation}`}>
         <img src={icon} className="rounded-5" alt="..." />
       </div>
 
